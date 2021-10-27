@@ -5,8 +5,8 @@
         use psycho_m
         use layer2_m
         use mpg_io_m
-        implicit none
 
+        implicit none
         type (mpg_t) :: mpg
         integer, allocatable :: iscale_factor(:, :, :), iscfsi(:, :), isubband(:, :, :), ialloc_bits(:, :)
         real(kd), allocatable :: pcm(:, :), smr(:, :)
@@ -82,13 +82,13 @@
             logical        , save :: qfirst = .true.
             if (qfirst) then
                 qfirst = .false.
-                padding = 0.0d0
+                padding = 0.0_kd
                 call calc_slot_size(islot_size, fslot_size)
             end if
             padding = padding + fslot_size
             if (padding > 1) then
                 ipadding = 1
-                padding = padding - 1.0d0
+                padding = padding - 1.0_kd
             else
                 ipadding = 0
             end if
@@ -174,7 +174,7 @@
 
 
         subroutine print_option()
-            write(*, *) 'usage : uzura -option file_name '
+            write(*, *) 'usage : uzura2 -option file_name '
             write(*, *) '      : file_name.wav -> file_name.mp2'
             write(*, *) 'option: -b 1..14  bitrate '
             write(*, *) '        -crc      crc16 error protection on'
