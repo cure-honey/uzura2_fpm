@@ -2,7 +2,7 @@
 
 uzura2 for fpm (Fortran package manager) ver 0.4
 
-An mp2 enocder written in Fortran 2008. 
+mp2 enocder written in Fortran 2008 
 
 
 

@@ -14,10 +14,11 @@
         integer :: nchannel, ntotal_frames, iframe = 0
         character(len = :), allocatable :: file_name, fn_in, fn_out
     
-        type(wavfile_t) :: wav
-        type(mpgfile_t) :: mp2
+        type(wavfile_t), allocatable :: wav
+        type(mpgfile_t), allocatable :: mp2
         type(subband_t) :: subb
         !
+        allocate(wav, mp2)
         call get_option(mpg, file_name)
         fn_in  = trim(file_name) // '.wav'
         fn_out = trim(file_name) // '.mp2'
@@ -60,16 +61,16 @@
             if ( mod(iframe, 50) == 0 ) call update_status(iframe, ntotal_frames) 
         end do
         write(*, *) 'toal frames', iframe, '/', ntotal_frames
-
+        deallocate(wav, mp2)
     contains
     
         subroutine calc_slot_size(islot_size, fslot_size)
             integer       , intent(out) :: islot_size
             real(kd), intent(out) :: fslot_size
             real(kd) :: aslot_size
-            aslot_size = 144.0d0 * 1000.0d0 * real(mpeg_bit_rates(mpg%ibit_rate, mpg%layer), kd) &
+            aslot_size = 144.0_kd * 1000.0_kd * real(mpeg_bit_rates(mpg%ibit_rate, mpg%layer), kd) &
                        / real(mpeg_sample_rates(mpg%isample_rate), kd)
-            aslot_size = 1.0d-3 * anint(1.0d3 * aslot_size) 
+            aslot_size = 1.0e-3_kd * anint(1.0e3_kd * aslot_size) 
             islot_size = int(aslot_size)
             fslot_size = aslot_size - islot_size
         end subroutine calc_slot_size
