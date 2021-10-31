@@ -13,23 +13,10 @@
     contains
     
         function psychoacoustics(pcm, isample_rate) result(smr) ! impure
-<<<<<<< HEAD
-<<<<<<< HEAD
             real (kd), intent(in ) :: pcm(:, :) 
             integer  , intent(in ) :: isample_rate
             real (kd) :: smr(32, size(pcm, 2))
             complex(kd) :: cfft(1024)
-=======
-=======
->>>>>>> dev
-            real (kd), intent(in) :: pcm(:, :) 
-            integer  , intent(in) :: isample_rate
-            real (kd) :: smr(32, size(pcm, 2))
-            complex (kd) :: cfft(1024)
-<<<<<<< HEAD
->>>>>>> dev
-=======
->>>>>>> dev
             integer :: ichannel, i0, i1
             logical, save :: qfirst = .true.
             if (qfirst) then
@@ -104,14 +91,7 @@
             xa = 2 * decibel( abs(cfft(1:512)) )
             xa(1) = 0.0_kd ! dc cut
         ! convolution of spreading function
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
             ya = 0.0_kd
->>>>>>> dev
-=======
-            ya = 0.0_kd
->>>>>>> dev
             do i = 1, 512
                 do m = 1, 512  ! i maskee, m masker 
                     ya(i) = ya(i) + 10.0_kd**( ((sp(i, m) + xa(m) - ath_fft(m)) * alpha - cbwl_fft(m)) / 10.0_kd ) ! non-linear sum
