@@ -36,6 +36,7 @@
         call select_table(mpg%isample_rate, mpg%ibit_rate, nchannel)
         ntotal_frames = wav%get_data_size() / (mpeg_frame_size(mpg%layer) * nchannel * 2) 
         do while (iframe < ntotal_frames )
+<<<<<<< HEAD
             call get_maxbits(max_bits, mpg%ipadding)
             call mp2%clear_bit_buff(max_bits)
             call mp2%encode_header(mpg)
@@ -46,13 +47,27 @@
             ialloc_bits = bit_allocation(mpg, smr, iscfsi, max_bits)
             call mp2%encode_crc(mpg, ialloc_bits, iscfsi)
             isubband = quantization(ialloc_bits, subb%subband)
+=======
+            call wav%pcm1frame(pcm) 
+            call subb%polyphase_filter36(pcm)
+            call subband_normalization(subb%subband, iscfsi, iscale_factor)
+            smr = psychoacoustics(pcm, wav%get_sampling_rate())
+
+            call get_maxbits(max_bits, mpg%ipadding)
+            ialloc_bits = bit_allocation(mpg, smr, iscfsi, max_bits)
+            isubband = quantization(ialloc_bits, subb%subband)
+
+            call mp2%clear_bit_buff(max_bits)
+            call mp2%encode_header(mpg)
+            call mp2%encode_crc(mpg, ialloc_bits, iscfsi)
+>>>>>>> dev
             call mp2%encode_alloc_bits(ialloc_bits)
             call mp2%encode_scfsi(ialloc_bits, iscfsi)
             call mp2%encode_scale_factor(ialloc_bits, iscfsi, iscale_factor)
             call mp2%encode_body(ialloc_bits, isubband)
             call mp2%write_bits_1frame(max_bits)
+            if ( mod(iframe, 100) == 0 ) call update_status(iframe, ntotal_frames) 
             iframe = iframe + 1
-            if ( mod(iframe, 50) == 0 ) call update_status(iframe, ntotal_frames) 
         end do
         write(*, *) 'toal frames', iframe, '/', ntotal_frames
         deallocate(wav, mp2, subb)

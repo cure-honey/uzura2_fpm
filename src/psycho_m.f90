@@ -4,19 +4,26 @@
         implicit none
         private
         public :: psychoacoustics
-        real(kd), save :: freq_fft(0:512), pseud_bark(0:512), ath_fft(0:512)
-        real(kd), save :: crbw_fft(0:512), cbwl_fft(0:512)
-        real(kd), save :: sp(512, 512) ! spreading function for masking
-        real(kd), save :: scale
-        real(kd), parameter :: alpha = 0.27_kd ! non-linear factor
+        real (kd), save :: freq_fft(512), ath_fft(512), pseud_bark(512)
+        real (kd), save :: crbw_fft(512), cbwl_fft(512)
+        real (kd), save :: sp(512, 512) ! spreading function for masking
+        real (kd), save :: scale
+        real (kd), parameter :: alpha = 0.27_kd ! non-linear factor
     
     contains
     
         function psychoacoustics(pcm, isample_rate) result(smr) ! impure
+<<<<<<< HEAD
             real (kd), intent(in ) :: pcm(:, :) 
             integer  , intent(in ) :: isample_rate
             real (kd) :: smr(32, size(pcm, 2))
             complex(kd) :: cfft(1024)
+=======
+            real (kd), intent(in) :: pcm(:, :) 
+            integer  , intent(in) :: isample_rate
+            real (kd) :: smr(32, size(pcm, 2))
+            complex (kd) :: cfft(1024)
+>>>>>>> dev
             integer :: ichannel, i0, i1
             logical, save :: qfirst = .true.
             if (qfirst) then
@@ -36,9 +43,9 @@
             integer, intent(in) :: isample_rate
             real (kd) :: freq, tmp
             integer :: i, m
-            do i = 0, size(freq_fft) - 1
+            do i = 1, size(freq_fft)
                 freq = real(isample_rate, kind = kd) / 2.0_kd / 1000.0_kd &
-                     * real(i, kind = kd) / real(size(freq_fft), kind = kd)
+                     * real(i - 1, kind = kd) / real(size(freq_fft), kind = kd)
                 ath_fft(i) = 3.64_kd * freq**(-0.8_kd)  & ! 
                            - 6.5_kd * exp(-0.6_kd * (freq - 3.3_kd)**2) + 0.001_kd * freq**4.0_kd   
                 freq = freq * 1000.0_kd ! khz -> hz
@@ -83,14 +90,18 @@
       
         
         subroutine calc_smr(cfft, smr)
-            complex(kd), intent(in) :: cfft(0:)
+            complex(kd), intent(in) :: cfft(:)
             real   (kd), intent(out) :: smr(:)
             real   (kd) :: snr(32), amnr(32)
-            real   (kd) :: xa(0:512), ya(0:512), za(0:512)
+            real   (kd) :: xa(512), ya(512), za(512)
             integer :: iband, i, m, i0, i1
-            xa = 2 * decibel( abs(cfft(0:512)) )
-            ya = 0.0_kd
+            xa = 2 * decibel( abs(cfft(1:512)) )
+            xa(1) = 0.0_kd ! dc cut
         ! convolution of spreading function
+<<<<<<< HEAD
+=======
+            ya = 0.0_kd
+>>>>>>> dev
             do i = 1, 512
                 do m = 1, 512  ! i maskee, m masker 
                     ya(i) = ya(i) + 10.0_kd**( ((sp(i, m) + xa(m) - ath_fft(m)) * alpha - cbwl_fft(m)) / 10.0_kd ) ! non-linear sum
