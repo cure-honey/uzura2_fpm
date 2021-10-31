@@ -1,5 +1,6 @@
     module psycho_m
         use kind_m
+        use fft_m
         implicit none
         private
         public :: psychoacoustics
@@ -11,11 +12,10 @@
     
     contains
     
-        subroutine psychoacoustics(pcm, isample_rate, smr)
-            use fft_m
+        function psychoacoustics(pcm, isample_rate) result(smr) ! impure
             real (kd), intent(in ) :: pcm(:, :) 
-            integer       , intent(in ) :: isample_rate
-            real (kd), intent(out) :: smr(:, :)
+            integer  , intent(in ) :: isample_rate
+            real (kd) :: smr(32, size(pcm, 2))
             complex(kd) :: cfft(1024)
             integer :: ichannel, i0, i1
             logical, save :: qfirst = .true.
@@ -29,7 +29,7 @@
                 call fft_window(pcm(i0:i1, ichannel), cfft)
                 call calc_smr(cfft, smr(:, ichannel))
             end do
-        end subroutine
+        end function psychoacoustics
  
         
         subroutine init_absolute_threshold(isample_rate)
@@ -91,8 +91,11 @@
             xa = 2 * decibel( abs(cfft(0:512)) )
             ya = 0.0_kd
         ! convolution of spreading function
-            forall(i = 1:512, m = 1:512) &  ! i maskee, m masker 
-               ya(i) = ya(i) + 10.0_kd**( ((sp(i, m) + xa(m) - ath_fft(m)) * alpha - cbwl_fft(m)) / 10.0_kd ) ! non-linear sum
+            do i = 1, 512
+                do m = 1, 512  ! i maskee, m masker 
+                    ya(i) = ya(i) + 10.0_kd**( ((sp(i, m) + xa(m) - ath_fft(m)) * alpha - cbwl_fft(m)) / 10.0_kd ) ! non-linear sum
+                end do
+            end do    
             ya = max(decibel(ya * scale) / alpha - 11.5_kd, ath_fft - 90.3_kd) ! 11.5 mask factor, 90.3dB = 2^15  ATH shift empirical 
         ! effective spl
             do i = 1, 512

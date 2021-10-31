@@ -108,7 +108,6 @@
         
         subroutine destroy_file(this) ! finalization routine
             type(wavfile_t), intent(in) :: this
-            print *, 'final'
             call this%close_file()
         end subroutine destroy_file  
 

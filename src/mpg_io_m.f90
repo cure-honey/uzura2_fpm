@@ -105,6 +105,7 @@
             type (mpg_t), intent(in) :: mpg
             integer, intent(in) :: ialloc_bits(:, :), iscfsi(:, :)
             integer :: iband, ichannel, icrc
+            if (mpg%icrc /= 0) return
             icrc = int(Z'0000ffff')
             call crc16(4, mpg%ibit_rate     , icrc)
             call crc16(2, mpg%isample_rate  , icrc)

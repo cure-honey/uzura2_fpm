@@ -1,5 +1,6 @@
     module layer2_m
         use :: kind_m
+        use :: mpg_m
         implicit none
         private
         public :: subband_normalization, bit_allocation, quantization, &
@@ -228,10 +229,9 @@
         end subroutine initialize_scalefactor
 
         
-        subroutine subband_normalization(subband, iscale_factor, iscfsi)
-            real (kd), intent(in out) :: subband(:, :, :)
-            integer, intent(out) :: iscale_factor(:, :, :)
-            integer, intent(out) :: iscfsi(:, :)
+        subroutine subband_normalization(subband, iscfsi, iscale_factor)
+            real(kd), intent(in out) :: subband(:, :, :)
+            integer , intent(out) :: iscfsi(:, :), iscale_factor(:, :, :)
             integer :: i, i0, i1, iband, ichannel
             logical, save :: qfirst = .true.
             if (qfirst) then
@@ -343,14 +343,18 @@
         end subroutine set_scale
 
         
-        subroutine bit_allocation(smr, iscfsi, ialloc_bits, itot_bits, max_bits)
+        function bit_allocation(mpg, smr, iscfsi, max_bits) result(ialloc_bits)
+            type(mpg_t), intent(in) :: mpg
             real (kd), intent(in    ) :: smr(:, :)
-            integer        , intent(in    ) :: max_bits, iscfsi(:, :)
-            integer        , intent(   out) :: ialloc_bits(:, :)
-            integer        , intent(in out) :: itot_bits
+            integer  , intent(in    ) :: max_bits, iscfsi(:, :)
+            integer :: ialloc_bits(32, size(smr, 2))
             integer :: ireq_bits(size(smr, 1), size(smr, 2))
-            integer :: iband, max_pos(2), k, n0, n1
+            integer :: iband, max_pos(2), itot_bits, k, n0, n1
             real(kd) :: amnr(size(smr, 1), size(smr, 2))
+
+            itot_bits = 32 
+            if (mpg%icrc == 0) itot_bits = itot_bits + 16
+            itot_bits = itot_bits + sum(table%nbal)
             
             ialloc_bits = 0
             amnr = smr - snr(0)
@@ -381,7 +385,7 @@
                 ialloc_bits( max_pos(1), max_pos(2) ) = k + 1
                 amnr       ( max_pos(1), max_pos(2) ) = smr( max_pos(1), max_pos(2) ) - snr(k + 1)
             end do
-        end subroutine bit_allocation
+        end function bit_allocation
         
         
         ! ISO Table C.6 -- Layer II  quantization coefficients
@@ -402,10 +406,10 @@
         end subroutine initialize_quantization
 
         
-        subroutine quantization(ialloc_bits, subband, isubband)
+        function quantization(ialloc_bits, subband) result(isubband)
             integer, intent(in) :: ialloc_bits(:, :)
             real (kd), intent(in) ::  subband(:, :, :)
-            integer, intent(out) :: isubband(:, :, :)
+            integer :: isubband(32, 36, size(subband, 3))
             integer :: ichannel, iband, msb, k, i, j, j0, j1
             integer, parameter :: imsb(0:17) = [0, 1, 2, 2, 3, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 ]
             logical, save :: qfirst = .true.
@@ -436,6 +440,6 @@
                     end if
                 end do
             end do
-        end subroutine quantization
+        end function quantization
 
     end module layer2_m
